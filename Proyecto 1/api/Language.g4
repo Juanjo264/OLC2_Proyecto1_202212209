@@ -8,8 +8,9 @@ INT: [0-9]+;
 FLOAT: [0-9]+'.'[0-9]+;
 WS: [ \t\r\n]+ -> channel(HIDDEN);
 CARACTER : '\'' . '\'' ; 
-CADENA: ('"'|'\'') (~["\r\n] | '""')* ('"'|'\'') ;
-ID: [a-zA-Z_][a-zA-Z0-9_]*;
+CADENA: '"' (ESC_SEQ | ~["\\\r\n])* '"' ; 
+fragment ESC_SEQ: '\\' [btnr"\\];
+ID: [a-zA-Z_][a-zA-Z0-9]*;
 
 
 PIZQ: '(';
@@ -23,8 +24,6 @@ IGUAL: '=';
 DOSPUNTOS_IGUAL: ':=';
 MASIGUAL: '+=';
 MENOSIGUAL: '-=';
-MASMAS: '++';
-MENOSMENOS: '--';
 
 LLINEAC: '//' ~[\r\n]* -> skip;
 MULTILINEAC: '/*' .*? '*/' -> skip;
@@ -32,71 +31,98 @@ MULTILINEAC: '/*' .*? '*/' -> skip;
 
 program: listainstrucciones* ;
 
-listainstrucciones : variables |instruccion ;
+listainstrucciones : variables |instruccion | classdcl | funcdlc ;
 
 variables: 'var' ID tipo (IGUAL expr)?  #declaracionVar 
+| ID DOSPUNTOS_IGUAL expr      #declaracionImplicita 
 | 'var' ID '[]' tipo #declaracionSlicevacio
-| ID IGUAL '[]' tipo '{' expr (','expr)* '}' ';' #declaracionSlice
+| ID DOSPUNTOS_IGUAL '[]' tipo '{' expr (','expr)* '}'  #declaracionSlice
+| ID DOSPUNTOS_IGUAL '[][]' tipo '{' fila (',' fila)* ','? '}' #declaracionSlicemulti
 ;
+fila: '{' expr (',' expr)* ','?'}' ;
+
+classdcl : 'class' ID '{' classBody* '}' ;
+
+classBody : variables | funcdlc ;
+
+funcdlc: 'func' ID '(' params? ')' tipo? '{' listainstrucciones* '}' ;
+
+params: param (',' param)* ;
+param: ID tipo ; 
+
 
 instruccion:  expr  #ExprecionInstruccion 
+|'break' #BreakInstruccion
+|'continue' #ContinueInstruccion
+|'return' expr? #ReturnInstruccion
 | print #PrintInstruccion
 |	asignacion								# Assign
 | '{' listainstrucciones* '}' #BloqueInstrucciones
-| 'if' '(' expr ')' instruccion ('else' instruccion)? #IfInstruccion
+| 'if'  expr  instruccion ('else' instruccion)? #IfInstruccion
 | 'while' '(' expr ')' instruccion #WhileInstruccion
 | 'switch'  expr  '{' cases* (defaultCase)? '}'  #SwitchInstruccion
-| for  #ForInstruccion
+| 'for' expr instruccion  #ForCondicion
+| 'for' (asignacion | variables) ';' expr ';' expr instruccion #Forincicializacion
+| 'for' ID ',' ID DOSPUNTOS_IGUAL 'range' ID instruccion #ForRange
 
-;
-
-for: 'for' expr '{' listainstrucciones* '}' #Forcondicion
-| 'for' (asignacion | variables)? ';' expr? ';' expr? (MASMAS | MENOSMENOS)* '{' listainstrucciones* '}' #Forincicializacion
-| 'for' ID ',' ID DOSPUNTOS_IGUAL 'range' ID '{' listainstrucciones* '}'  #ForRange
 ;
 
 cases:
-    'case' expr ':' listainstrucciones  
+    'case' expr ':' listainstrucciones*
     ;
 
 defaultCase:
-    'default' ':' listainstrucciones  
+    'default' ':' listainstrucciones*  
     ;
 
 expr:
 	'(' expr ')'			# Parens
-	| '[' expr ']' #Corchetes
 	| '!' right=expr #operadorNegacion
 	|'-' expr                   	  # Negate
+	| expr '.' ID '(' args? ')'             # ModuleFuncCall
+	| expr call+  #Callee
 	| expr op =  ('*' | '/') expr	# MulDiv
 	| expr op = '%' expr	# Mod
 	| expr  op = ('+' | '-') expr	# AddSub
 	| expr	op = ('>' | '<' | '>=' | '<=' ) expr	# Relational
 	| expr	op = ('==' | '!=') expr	# Equalitys
+  | expr '[' expr ']' '[' expr ']'  #AccesoSliceMulti
+	| expr '[' expr ']'  #AccesoSlice
 	| expr	op = ('&&' | '||' ) expr	# Logicos
 	| FLOAT					      # Float
 	| INT					      # Int
+	| 'new' ID '(' args? ')' #New
 	| TRUE #boleanTrueExpresion
 	| FALSE #boleanFalseExpresion
 	| CARACTER #caracterExpresion
 	| CADENA #cadenaExpresion
 	| ID #Idexpresion
-; 
-						
+  | ID ('++' | '--') # IncrementoDecremento 
 
-asignacion: ID signo=(IGUAL | DOSPUNTOS_IGUAL) expr #asignarVar 
-					|ID signo=(MASIGUAL | MENOSIGUAL) expr #incremento
+
+; 
+
+//como a.b.c().f=
+call: 
+'(' args? ')' 	#FuncCall 
+| '.' ID #Get;	
+
+args: expr (',' expr)* ;
+
+asignacion:	ID signo=(MASIGUAL | MENOSIGUAL) expr #incremento
+					| ID '[' expr ']' IGUAL expr #asignarSlice
+					| ID '[' expr ']' '[' expr ']' IGUAL expr  #AsignarSliceMulti
+					| ID IGUAL '[]' tipo '{' expr (',' expr)* '}' #asignarSliceCompleto
+					| expr IGUAL expr #asignarVar 
 					;
 
-print: 'prt' PIZQ impresiones PDER ;
+print: 'fmt.Println' PIZQ impresiones PDER ;
 
 impresiones: impresiones ',' expr
 	| expr;
 
 if: 'if'  expr  LLAVE_ABRE listainstrucciones LLAVE_CIERRA ('else' LLAVE_ABRE listainstrucciones LLAVE_CIERRA)? 
   | 'if'  expr  LLAVE_ABRE listainstrucciones LLAVE_CIERRA 'else' if;
-
-
 
 tipo: 'int'
 | 'float64'

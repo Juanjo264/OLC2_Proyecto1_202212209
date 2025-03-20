@@ -27,4 +27,4 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.MapControllers();
 app.Run();
-
+app.UseStaticFiles();
