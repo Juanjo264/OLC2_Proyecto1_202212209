@@ -20,7 +20,7 @@ public class Instance {
 
         var method = languageClass.GetMethod(name);
         if (method != null) {
-            return new FunctionValue(method.Bind(this), name);
+            return new FunctionValue(languageClass.Methods[name].Bind(this), name);
         }
 
         throw new SemanticError("Propiedad " + name + " no encontrada", token);

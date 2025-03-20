@@ -104,8 +104,8 @@ expr:
 
 //como a.b.c().f=
 call: 
-'(' args? ')' 	#FuncCall 
-| '.' ID #Get;	
+    '(' args? ')' 	#FuncCall 
+    | '.' ID #Get;
 
 args: expr (',' expr)* ;
 

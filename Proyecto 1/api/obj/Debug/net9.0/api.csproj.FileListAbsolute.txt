@@ -103,3 +103,4 @@ C:\Users\juanj\Desktop\Compi 2\Proyecto 1\Clase4\api\obj\Debug\net9.0\refint\api
 C:\Users\juanj\Desktop\Compi 2\Proyecto 1\Clase4\api\obj\Debug\net9.0\api.pdb
 C:\Users\juanj\Desktop\Compi 2\Proyecto 1\Clase4\api\obj\Debug\net9.0\api.genruntimeconfig.cache
 C:\Users\juanj\Desktop\Compi 2\Proyecto 1\Clase4\api\obj\Debug\net9.0\ref\api.dll
+C:\Users\juanj\Desktop\Compi 2\Proyecto 1\Clase4\api\bin\Debug\net9.0\api.staticwebassets.runtime.json

@@ -16,15 +16,14 @@ public class LanguageClass : Invocable
         Props = props;
         Methods = methods;
 
-        // Identificar propiedad principal de tipo int o float
-        foreach (var prop in Props)
-        {
-            if (prop.Value.tipo().GetText() == "int" || prop.Value.tipo().GetText() == "float")
+            foreach (var prop in Props)
             {
-                MainProperty = prop.Key;
-                break;
+                if ((prop.Value.tipo().GetText() == "int" || prop.Value.tipo().GetText() == "float") && Props.ContainsKey(prop.Key))
+                {
+                    MainProperty = prop.Key;
+                    break;
+                }
             }
-        }
     }
 
     public ForeignFunction? GetMethod(string name)

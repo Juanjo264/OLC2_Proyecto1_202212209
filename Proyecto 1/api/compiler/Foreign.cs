@@ -79,7 +79,7 @@ public ValueWrapper Invoke(List<ValueWrapper> args, CompilerVisitor visitor) {
     }
 
 
-    public static ValueWrapper ObtenerValorPorDefecto(Type tipo) {
+public static ValueWrapper ObtenerValorPorDefecto(Type tipo) {
     return tipo switch {
         Type t when t == typeof(IntValue) => new IntValue(0),
         Type t when t == typeof(FloatValue) => new FloatValue(0.0f),
@@ -87,6 +87,7 @@ public ValueWrapper Invoke(List<ValueWrapper> args, CompilerVisitor visitor) {
         Type t when t == typeof(StringValue) => new StringValue(""),
         Type t when t == typeof(RuneValue) => new RuneValue('\0'),
         Type t when t == typeof(SliceValue) => new SliceValue(new List<ValueWrapper>()),
+        Type t when t == typeof(InstanceValue) => new InstanceValue(null), // 🔥 Agregamos un caso para clases
         _ => throw new SemanticError($"Error: No se puede determinar un valor por defecto para el tipo {tipo.Name}.", null)
     };
 }
