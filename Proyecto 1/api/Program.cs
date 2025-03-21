@@ -26,5 +26,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.MapControllers();
+//LANG=en_US.UTF-8 dotnet watch run
 app.Run();
 app.UseStaticFiles();

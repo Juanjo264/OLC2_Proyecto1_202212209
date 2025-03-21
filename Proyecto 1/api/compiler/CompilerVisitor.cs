@@ -392,10 +392,9 @@ public override ValueWrapper VisitAsignarSliceCompleto(LanguageParser.AsignarSli
 
 //expresiones
 
-    public override ValueWrapper VisitFloat(LanguageParser.FloatContext context) {
-        return new FloatValue(float.Parse(context.FLOAT().GetText(), System.Globalization.CultureInfo.InvariantCulture));
+    public override ValueWrapper VisitFloat( LanguageParser.FloatContext context) {
+        return new FloatValue(float.Parse(context.FLOAT().GetText()));
     }
-
 
 
     public override ValueWrapper VisitBoleanTrueExpresion(LanguageParser.BoleanTrueExpresionContext context) {
