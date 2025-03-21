@@ -1,4 +1,4 @@
-// Generated from /home/juanjo/compi2/OLC2_Proyecto1_202212209/Proyecto 1/api/Language.g4 by ANTLR 4.13.1
+// Generated from /home/juanjo/compi2/OLC2_Proyecto1_202212209/Language.g4 by ANTLR 4.13.1
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;

@@ -1,20 +1,12 @@
 {
   "Version": 1,
-  "Hash": "IIZIlqcTReiBStg/3+5u2N0riOPdFtCz5c7MriW9EHc=",
+  "Hash": "A9PKRZfZUTDhj1QRyCFFkEHzqJ04Y7sk6OEkYYD+as4=",
   "Source": "api",
   "BasePath": "_content/api",
   "Mode": "Default",
   "ManifestType": "Build",
   "ReferencedProjectsConfiguration": [],
-  "DiscoveryPatterns": [
-    {
-      "Name": "api\\wwwroot",
-      "Source": "api",
-      "ContentRoot": "C:\\Users\\juanj\\Desktop\\Compi 2\\Proyecto 1\\Clase4\\api\\wwwroot\\",
-      "BasePath": "_content/api",
-      "Pattern": "**"
-    }
-  ],
+  "DiscoveryPatterns": [],
   "Assets": [],
   "Endpoints": []
 }
