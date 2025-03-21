@@ -19,7 +19,6 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
-namespace analyzer {
 
 using Antlr4.Runtime.Misc;
 using IErrorNode = Antlr4.Runtime.Tree.IErrorNode;
@@ -143,29 +142,29 @@ public partial class LanguageBaseListener : ILanguageListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitFila([NotNull] LanguageParser.FilaContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LanguageParser.classdcl"/>.
+	/// Enter a parse tree produced by <see cref="LanguageParser.structdcl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterClassdcl([NotNull] LanguageParser.ClassdclContext context) { }
+	public virtual void EnterStructdcl([NotNull] LanguageParser.StructdclContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LanguageParser.classdcl"/>.
+	/// Exit a parse tree produced by <see cref="LanguageParser.structdcl"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitClassdcl([NotNull] LanguageParser.ClassdclContext context) { }
+	public virtual void ExitStructdcl([NotNull] LanguageParser.StructdclContext context) { }
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LanguageParser.classBody"/>.
+	/// Enter a parse tree produced by <see cref="LanguageParser.structBody"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void EnterClassBody([NotNull] LanguageParser.ClassBodyContext context) { }
+	public virtual void EnterStructBody([NotNull] LanguageParser.StructBodyContext context) { }
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LanguageParser.classBody"/>.
+	/// Exit a parse tree produced by <see cref="LanguageParser.structBody"/>.
 	/// <para>The default implementation does nothing.</para>
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	public virtual void ExitClassBody([NotNull] LanguageParser.ClassBodyContext context) { }
+	public virtual void ExitStructBody([NotNull] LanguageParser.StructBodyContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LanguageParser.funcdlc"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -507,6 +506,20 @@ public partial class LanguageBaseListener : ILanguageListener {
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitBoleanTrueExpresion([NotNull] LanguageParser.BoleanTrueExpresionContext context) { }
 	/// <summary>
+	/// Enter a parse tree produced by the <c>InstanciaStruct</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterInstanciaStruct([NotNull] LanguageParser.InstanciaStructContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>InstanciaStruct</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitInstanciaStruct([NotNull] LanguageParser.InstanciaStructContext context) { }
+	/// <summary>
 	/// Enter a parse tree produced by the <c>MulDiv</c>
 	/// labeled alternative in <see cref="LanguageParser.expr"/>.
 	/// <para>The default implementation does nothing.</para>
@@ -604,6 +617,20 @@ public partial class LanguageBaseListener : ILanguageListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitCaracterExpresion([NotNull] LanguageParser.CaracterExpresionContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by the <c>nilExpresion</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterNilExpresion([NotNull] LanguageParser.NilExpresionContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by the <c>nilExpresion</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitNilExpresion([NotNull] LanguageParser.NilExpresionContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by the <c>ModuleFuncCall</c>
 	/// labeled alternative in <see cref="LanguageParser.expr"/>.
@@ -716,6 +743,30 @@ public partial class LanguageBaseListener : ILanguageListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	public virtual void ExitBoleanFalseExpresion([NotNull] LanguageParser.BoleanFalseExpresionContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LanguageParser.camposStruct"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterCamposStruct([NotNull] LanguageParser.CamposStructContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LanguageParser.camposStruct"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitCamposStruct([NotNull] LanguageParser.CamposStructContext context) { }
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LanguageParser.campoStruct"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void EnterCampoStruct([NotNull] LanguageParser.CampoStructContext context) { }
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LanguageParser.campoStruct"/>.
+	/// <para>The default implementation does nothing.</para>
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	public virtual void ExitCampoStruct([NotNull] LanguageParser.CampoStructContext context) { }
 	/// <summary>
 	/// Enter a parse tree produced by the <c>FuncCall</c>
 	/// labeled alternative in <see cref="LanguageParser.call"/>.
@@ -888,4 +939,3 @@ public partial class LanguageBaseListener : ILanguageListener {
 	/// <remarks>The default implementation does nothing.</remarks>
 	public virtual void VisitErrorNode([NotNull] IErrorNode node) { }
 }
-} // namespace analyzer

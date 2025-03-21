@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Antlr4.Runtime;
-using analyzer;
 
 namespace api.Controllers
 {

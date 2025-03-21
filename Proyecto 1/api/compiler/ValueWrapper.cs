@@ -9,13 +9,14 @@ public record StringValue(string Value) : ValueWrapper;
 public record BoolValue(bool Value) : ValueWrapper;
 public record ContinueSignal : ValueWrapper { }
 public record BreakSignal : ValueWrapper { }
+public record NullValue : ValueWrapper;
 
 public record InstanceValue(Instance Instance) : ValueWrapper;
 public record RuneValue(char Value) : ValueWrapper;
 public record VoidValue : ValueWrapper;
 public record FunctionValue(Invocable invocable, string name) : ValueWrapper;
 
-public record ClassValue(LanguageClass LanguageClass) : ValueWrapper;
+public record StructTypeValue(StructType StructType) : ValueWrapper;
 
 public record SliceValue : ValueWrapper {
     public List<ValueWrapper> Values { get; set; } = new List<ValueWrapper>(); 

@@ -1,16 +1,52 @@
 public class Embeded
 {
-    public static void Generate(Environment env)
+public static void Generate(Environment env)
+{
+    env.DeclareVariable("time", new FunctionValue(new TimeEmbeded(), "time"));
+    env.DeclareVariable("reflect.TypeOf", new FunctionValue(new TypeOfEmbeded(), "reflect.TypeOf"));
+    env.DeclareVariable("slices.Index", new FunctionValue(new IndexEmbeded(), "slices.Index"));
+    env.DeclareVariable("strings.Join", new FunctionValue(new JoinEmbeded(), "strings.Join"));
+    env.DeclareVariable("len", new FunctionValue(new LenEmbeded(), "len"));
+    env.DeclareVariable("append", new FunctionValue(new AppendEmbeded(), "append"));
+
+    // Crear struct para strconv
+    var strconvFields = new Dictionary<string, ValueWrapper>
     {
-        env.DeclareVariable("time", new FunctionValue(new TimeEmbeded(), "time"));
-        env.DeclareVariable("strconv.Atoi", new FunctionValue(new AtoiEmbeded(), "strconv.Atoi"));
-        env.DeclareVariable("strconv.ParseFloat", new FunctionValue(new ParseFloatEmbeded(), "strconv.ParseFloat"));
-        env.DeclareVariable("reflect.TypeOf", new FunctionValue(new TypeOfEmbeded(), "reflect.TypeOf"));
-        env.DeclareVariable("slices.Index", new FunctionValue(new IndexEmbeded(), "slices.Index"));
-        env.DeclareVariable("strings.Join", new FunctionValue(new JoinEmbeded(), "strings.Join"));
-        env.DeclareVariable("len", new FunctionValue(new LenEmbeded(), "len"));
-        env.DeclareVariable("append", new FunctionValue(new AppendEmbeded(), "append"));
+        { "Atoi", new FunctionValue(new AtoiEmbeded(), "Atoi") },
+        { "ParseFloat", new FunctionValue(new ParseFloatEmbeded(), "ParseFloat") }
+    };
+
+    var strconvInstance = new Instance(
+        new StructType("strconv", new(), new()) // Struct vacío
+    );
+    // --------- reflect.TypeOf
+    var reflectInstance = new Instance(
+        new StructType("reflect", new(), new())
+    );
+    reflectInstance.Set("TypeOf", new FunctionValue(new TypeOfEmbeded(), "TypeOf"));
+    env.DeclareVariable("reflect", new InstanceValue(reflectInstance), typeof(InstanceValue));
+    // --------- slices.Index
+    var slicesInstance = new Instance(
+        new StructType("slices", new(), new())
+    );
+    slicesInstance.Set("Index", new FunctionValue(new IndexEmbeded(), "Index"));
+    env.DeclareVariable("slices", new InstanceValue(slicesInstance), typeof(InstanceValue));
+
+    // --------- strings.Join
+    var stringsInstance = new Instance(
+        new StructType("strings", new(), new())
+    );
+    stringsInstance.Set("Join", new FunctionValue(new JoinEmbeded(), "Join"));
+    env.DeclareVariable("strings", new InstanceValue(stringsInstance), typeof(InstanceValue));
+
+    foreach (var kv in strconvFields)
+    {
+        strconvInstance.Set(kv.Key, kv.Value); 
     }
+
+   
+    env.DeclareVariable("strconv", new InstanceValue(strconvInstance), typeof(InstanceValue));
+}
 }
 
 public class TimeEmbeded : Invocable

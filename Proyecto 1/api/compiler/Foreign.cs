@@ -1,24 +1,26 @@
 using System.Linq.Expressions;
-using analyzer;
 using Microsoft.AspNetCore.DataProtection.KeyManagement.Internal;
-
 public class ForeignFunction : Invocable {
-    private Environment closure;
-    private LanguageParser.FuncdlcContext context;
-    private Type tipoRetorno;
-    private List<Type> tiposParametros = new List<Type>();
+    public Environment closure;
+    public LanguageParser.FuncdlcContext context;
+    public Type tipoRetorno;
+    public List<Type> tiposParametros = new List<Type>();
 
-    public ForeignFunction(Environment closure, LanguageParser.FuncdlcContext context, Type tipoRetorno) {
-        this.closure = closure;
-        this.context = context;
-        this.tipoRetorno = tipoRetorno;
+private CompilerVisitor visitor; 
 
-        if (context.@params() != null) {
-            foreach (var param in context.@params().param()) {
-                tiposParametros.Add(CompilerVisitor.ObtenerTipo(param.tipo().GetText(), param.tipo().Start));
-            }
+public ForeignFunction(Environment closure, LanguageParser.FuncdlcContext context, Type tipoRetorno, CompilerVisitor visitor)
+{
+    this.closure = closure;
+    this.context = context;
+    this.tipoRetorno = tipoRetorno;
+    this.visitor = visitor;
+
+    if (context.@params() != null) {
+        foreach (var param in context.@params().param()) {
+            tiposParametros.Add(visitor.ObtenerTipo(param.tipo().GetText(), param.tipo().Start));
         }
     }
+}
 
     public int Arity() {
         return tiposParametros.Count;
@@ -63,20 +65,33 @@ public ValueWrapper Invoke(List<ValueWrapper> args, CompilerVisitor visitor) {
         return e.Value;
     }
 
-    visitor.currentEnvironment = beforeCallEnv;
+visitor.currentEnvironment = beforeCallEnv;
 
-    if (!hasReturned && tipoRetorno != typeof(VoidValue)) {
-        throw new SemanticError($"Error: La función {context.ID().GetText()} debe retornar {tipoRetorno.Name}, pero no tiene return", context.Start);
-    }
+string nombreFuncion;
 
-    return visitor.defaultValue;
+if (context.ID().Length == 2) {
+    // Método con receptor (func (p Persona) Saludar())
+    nombreFuncion = context.ID(1).GetText();
+} else {
+    // Función normal
+    nombreFuncion = context.ID(0).GetText();
 }
 
-    public ForeignFunction Bind(Instance instance) {
-        var hiddenEnv = new Environment(closure);
-        hiddenEnv.DeclareVariable("this", new InstanceValue(instance), null);
-        return new ForeignFunction(hiddenEnv, context, tipoRetorno);
-    }
+if (!hasReturned && tipoRetorno != typeof(VoidValue)) {
+    throw new SemanticError($"Error: La función {nombreFuncion} debe retornar {tipoRetorno.Name}, pero no tiene return", context.Start);
+}
+
+return visitor.defaultValue; 
+}
+
+
+
+public Invocable Bind(Instance instance, CompilerVisitor visitor)
+{
+    return new BoundForeignFunction(this, instance, visitor);
+}
+
+
 
 
 public static ValueWrapper ObtenerValorPorDefecto(Type tipo) {

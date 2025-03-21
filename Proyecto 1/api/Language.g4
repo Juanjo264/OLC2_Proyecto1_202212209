@@ -31,7 +31,7 @@ MULTILINEAC: '/*' .*? '*/' -> skip;
 
 program: listainstrucciones* ;
 
-listainstrucciones : variables |instruccion | classdcl | funcdlc ;
+listainstrucciones : variables |instruccion | structdcl | funcdlc ;
 
 variables: 'var' ID tipo (IGUAL expr)?  #declaracionVar 
 | ID DOSPUNTOS_IGUAL expr      #declaracionImplicita 
@@ -41,11 +41,13 @@ variables: 'var' ID tipo (IGUAL expr)?  #declaracionVar
 ;
 fila: '{' expr (',' expr)* ','?'}' ;
 
-classdcl : 'class' ID '{' classBody* '}' ;
+structdcl: 'type' ID 'struct' '{' structBody* '}' ;
 
-classBody : variables | funcdlc ;
+structBody: variables | funcdlc | ID tipo ;
+ 
 
-funcdlc: 'func' ID '(' params? ')' tipo? '{' listainstrucciones* '}' ;
+funcdlc:  'func' '(' ID ID ')' ID '(' params? ')' tipo? '{' listainstrucciones* '}'  
+| 'func' ID '(' params? ')' tipo? '{' listainstrucciones* '}' ;
 
 params: param (',' param)* ;
 param: ID tipo ; 
@@ -77,10 +79,11 @@ defaultCase:
 
 expr:
 	'(' expr ')'			# Parens
+	| expr call+  #Callee
+	| ID LLAVE_ABRE camposStruct LLAVE_CIERRA   # InstanciaStruct
 	| '!' right=expr #operadorNegacion
 	|'-' expr                   	  # Negate
 	| expr '.' ID '(' args? ')'             # ModuleFuncCall
-	| expr call+  #Callee
 	| expr op =  ('*' | '/') expr	# MulDiv
 	| expr op = '%' expr	# Mod
 	| expr  op = ('+' | '-') expr	# AddSub
@@ -97,10 +100,11 @@ expr:
 	| CARACTER #caracterExpresion
 	| CADENA #cadenaExpresion
 	| ID #Idexpresion
-  | ID ('++' | '--') # IncrementoDecremento 
-
-
+	| ID ('++' | '--') # IncrementoDecremento 
+	| 'nil' #nilExpresion
 ; 
+camposStruct: campoStruct (',' campoStruct)* (',')? ;
+campoStruct: ID ':' expr ;
 
 //como a.b.c().f=
 call: 
@@ -129,6 +133,8 @@ tipo: 'int'
 | 'string'
 | 'bool'
 | 'rune'
+|ID
+	| 'nil' 
 ;
 
 

@@ -19,7 +19,6 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
-namespace analyzer {
 using Antlr4.Runtime.Misc;
 using IParseTreeListener = Antlr4.Runtime.Tree.IParseTreeListener;
 using IToken = Antlr4.Runtime.IToken;
@@ -122,25 +121,25 @@ public interface ILanguageListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitFila([NotNull] LanguageParser.FilaContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LanguageParser.classdcl"/>.
+	/// Enter a parse tree produced by <see cref="LanguageParser.structdcl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterClassdcl([NotNull] LanguageParser.ClassdclContext context);
+	void EnterStructdcl([NotNull] LanguageParser.StructdclContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LanguageParser.classdcl"/>.
+	/// Exit a parse tree produced by <see cref="LanguageParser.structdcl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitClassdcl([NotNull] LanguageParser.ClassdclContext context);
+	void ExitStructdcl([NotNull] LanguageParser.StructdclContext context);
 	/// <summary>
-	/// Enter a parse tree produced by <see cref="LanguageParser.classBody"/>.
+	/// Enter a parse tree produced by <see cref="LanguageParser.structBody"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void EnterClassBody([NotNull] LanguageParser.ClassBodyContext context);
+	void EnterStructBody([NotNull] LanguageParser.StructBodyContext context);
 	/// <summary>
-	/// Exit a parse tree produced by <see cref="LanguageParser.classBody"/>.
+	/// Exit a parse tree produced by <see cref="LanguageParser.structBody"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
-	void ExitClassBody([NotNull] LanguageParser.ClassBodyContext context);
+	void ExitStructBody([NotNull] LanguageParser.StructBodyContext context);
 	/// <summary>
 	/// Enter a parse tree produced by <see cref="LanguageParser.funcdlc"/>.
 	/// </summary>
@@ -432,6 +431,18 @@ public interface ILanguageListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitBoleanTrueExpresion([NotNull] LanguageParser.BoleanTrueExpresionContext context);
 	/// <summary>
+	/// Enter a parse tree produced by the <c>InstanciaStruct</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterInstanciaStruct([NotNull] LanguageParser.InstanciaStructContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>InstanciaStruct</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitInstanciaStruct([NotNull] LanguageParser.InstanciaStructContext context);
+	/// <summary>
 	/// Enter a parse tree produced by the <c>MulDiv</c>
 	/// labeled alternative in <see cref="LanguageParser.expr"/>.
 	/// </summary>
@@ -515,6 +526,18 @@ public interface ILanguageListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitCaracterExpresion([NotNull] LanguageParser.CaracterExpresionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by the <c>nilExpresion</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterNilExpresion([NotNull] LanguageParser.NilExpresionContext context);
+	/// <summary>
+	/// Exit a parse tree produced by the <c>nilExpresion</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitNilExpresion([NotNull] LanguageParser.NilExpresionContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>ModuleFuncCall</c>
 	/// labeled alternative in <see cref="LanguageParser.expr"/>.
@@ -611,6 +634,26 @@ public interface ILanguageListener : IParseTreeListener {
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	void ExitBoleanFalseExpresion([NotNull] LanguageParser.BoleanFalseExpresionContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LanguageParser.camposStruct"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterCamposStruct([NotNull] LanguageParser.CamposStructContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LanguageParser.camposStruct"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitCamposStruct([NotNull] LanguageParser.CamposStructContext context);
+	/// <summary>
+	/// Enter a parse tree produced by <see cref="LanguageParser.campoStruct"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void EnterCampoStruct([NotNull] LanguageParser.CampoStructContext context);
+	/// <summary>
+	/// Exit a parse tree produced by <see cref="LanguageParser.campoStruct"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	void ExitCampoStruct([NotNull] LanguageParser.CampoStructContext context);
 	/// <summary>
 	/// Enter a parse tree produced by the <c>FuncCall</c>
 	/// labeled alternative in <see cref="LanguageParser.call"/>.
@@ -746,4 +789,3 @@ public interface ILanguageListener : IParseTreeListener {
 	/// <param name="context">The parse tree.</param>
 	void ExitTipo([NotNull] LanguageParser.TipoContext context);
 }
-} // namespace analyzer

@@ -1,6 +1,5 @@
 
 using System.Reflection.Metadata;
-using analyzer;
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
    
@@ -55,14 +54,37 @@ public string output = "";
 
 
 //visitprogram
-    public override ValueWrapper VisitProgram(LanguageParser.ProgramContext context)
+public override ValueWrapper VisitProgram(LanguageParser.ProgramContext context)
+{
+    // registrar primero todas las funciones 
+    foreach (var declaracion in context.listainstrucciones())
     {
-        foreach (var declaracion in context.listainstrucciones()) {
-            Visit(declaracion);
-        }   
-      
-      return defaultValue;
+        if (declaracion.funcdlc() != null)
+        {
+            Visit(declaracion.funcdlc());
+        }
     }
+
+    //  registrar structs 
+    foreach (var declaracion in context.listainstrucciones())
+    {
+        if (declaracion.structdcl() != null)
+        {
+            Visit(declaracion.structdcl());
+        }
+    }
+
+    // Ejecutar variables, instrucciones 
+    foreach (var declaracion in context.listainstrucciones())
+    {
+        if (declaracion.variables() != null || declaracion.instruccion() != null)
+        {
+            Visit(declaracion);
+        }
+    }
+
+    return defaultValue;
+}
 
     public override ValueWrapper VisitExprecionInstruccion( LanguageParser.ExprecionInstruccionContext context)
     {
@@ -123,11 +145,12 @@ private string ProcesarEscapes(string texto) {
 }
 
 //visitid
-    public override ValueWrapper VisitIdexpresion(LanguageParser.IdexpresionContext context)
-    {
-        string id = context.ID().GetText();
-        return currentEnvironment.GetVariable(id, context.Start);
-    }
+public override ValueWrapper VisitIdexpresion(LanguageParser.IdexpresionContext context)
+{
+    string id = context.ID().GetText();
+    return currentEnvironment.GetVariable(id, context.Start);
+}
+
 
 //parens
     public override ValueWrapper VisitParens(LanguageParser.ParensContext context)
@@ -312,16 +335,34 @@ public override ValueWrapper VisitDeclaracionImplicita(LanguageParser.Declaracio
 
     return new BoolValue(true);
 }
-public static Type ObtenerTipo(string tipo, Antlr4.Runtime.IToken? token) {
+public Type ObtenerTipo(string tipo, Antlr4.Runtime.IToken? token) {
     return tipo switch {
         "int" => typeof(IntValue),
         "float64" => typeof(FloatValue),
         "bool" => typeof(BoolValue),
         "string" => typeof(StringValue),
         "rune" => typeof(RuneValue),
-        _ when tipo.StartsWith("[]") => typeof(SliceValue), 
-        _ => throw new SemanticError("Error: Tipo no soportado: ", token)
+        _ when tipo.StartsWith("[]") => typeof(SliceValue),
+        _ => ResolverTipoPersonalizado(tipo, token)
     };
+}
+
+
+public Type ResolverTipoPersonalizado(string tipo, Antlr4.Runtime.IToken? token)
+{
+    ValueWrapper tipoValor;
+
+    try {
+        tipoValor = currentEnvironment.GetVariable(tipo, token);
+    } catch {
+        throw new SemanticError("Error: Tipo no soportado o no declarado: " + tipo, token);
+    }
+
+    if (tipoValor is StructTypeValue) {
+        return typeof(InstanceValue); 
+    }
+
+    throw new SemanticError("Error: El identificador '" + tipo + "' no es un tipo válido.", token);
 }
 
     // asignaion
@@ -362,7 +403,7 @@ public override ValueWrapper VisitAsignarVar(LanguageParser.AsignarVarContext co
                 }
             } else if (action is LanguageParser.GetContext propertyAcces) {
                 if (callee is InstanceValue instanceValue) {
-                    callee = instanceValue.Instance.Get(propertyAcces.ID().GetText(), propertyAcces.Start);
+                    callee = instanceValue.Instance.Get(propertyAcces.ID().GetText(), propertyAcces.Start, this);
                 } else {
                     throw new SemanticError("Error: No se puede acceder a una propiedad de un valor que no es una instancia.", context.Start);
                 }
@@ -475,7 +516,6 @@ public override ValueWrapper VisitEqualitys(LanguageParser.EqualitysContext cont
     ValueWrapper right = Visit(context.expr(1));
     var op = context.op.Text;
 
-
     if (left is SliceValue sliceLeft && right is SliceValue sliceRight) {
         bool resultado = sliceLeft.Values.SequenceEqual(sliceRight.Values);
         return new BoolValue(op == "==" ? resultado : !resultado);
@@ -487,6 +527,12 @@ public override ValueWrapper VisitEqualitys(LanguageParser.EqualitysContext cont
     if (right is SliceValue sliceRightSingle && left is IntValue intLeft) {
         bool resultado = sliceRightSingle.Values.Count == 1 && sliceRightSingle.Values[0] is IntValue singleValue && singleValue.Value == intLeft.Value;
         return new BoolValue(op == "==" ? resultado : !resultado);
+    }
+
+    if (left is NullValue || right is NullValue)
+    {
+        bool isEqual = left is NullValue && right is NullValue;
+        return new BoolValue(op == "==" ? isEqual : !isEqual);
     }
 
     return (left, right, op) switch {
@@ -677,6 +723,12 @@ public override ValueWrapper VisitDeclaracionSlicevacio(LanguageParser.Declaraci
     Console.WriteLine("Declarado slice vacío: " + id + " de tipo " + tipoStr);
     return new BoolValue(true);
 }
+
+public override ValueWrapper VisitNilExpresion(LanguageParser.NilExpresionContext context)
+{
+    return new NullValue();
+}
+
 
 public override ValueWrapper VisitDeclaracionSlicemulti(LanguageParser.DeclaracionSlicemultiContext context) {
     string id = context.ID().GetText();
@@ -990,11 +1042,16 @@ public override ValueWrapper VisitContinueInstruccion(LanguageParser.ContinueIns
 }
 
 //callee 
-public override ValueWrapper VisitCallee(LanguageParser.CalleeContext context) { 
+public override ValueWrapper VisitCallee(LanguageParser.CalleeContext context) {
     ValueWrapper callee = Visit(context.expr());
+
+
+    if (callee is InstanceValue iv) {
+    }
 
     foreach (var action in context.call()) {
         if (action is LanguageParser.FuncCallContext funcall) {
+
             if (callee is FunctionValue functionValue) {
                 callee = VisitCall(functionValue.invocable, funcall.args());
             } else {
@@ -1002,26 +1059,17 @@ public override ValueWrapper VisitCallee(LanguageParser.CalleeContext context) {
             }
         }
         else if (action is LanguageParser.GetContext propertyAccess) {
+
             if (callee is InstanceValue instanceValue) {
-                callee = instanceValue.Instance.Get(propertyAccess.ID().GetText(), propertyAccess.Start);
-            }
-            else if (context.expr() is LanguageParser.NewContext newContext) {
-                ValueWrapper classValue = currentEnvironment.GetVariable(newContext.ID().GetText(), newContext.Start);
-
-                if (classValue is ClassValue classVal) {
-                    ValueWrapper instanceWrapper = classVal.LanguageClass.Invoke(new List<ValueWrapper>(), this);
-
-                    if (instanceWrapper is InstanceValue instanceVal) {
-                        callee = instanceVal.Instance.Get(propertyAccess.ID().GetText(), propertyAccess.Start);
-                    } else {
-                        throw new SemanticError("Error: La instancia creada no es válida.", context.Start);
-                    }
-                } else {
-                    throw new SemanticError("Error: No se puede acceder a propiedades de un valor que no es una clase.", context.Start);
-                }
+                callee = instanceValue.Instance.Get(propertyAccess.ID().GetText(), propertyAccess.Start, this);
+            } else {
+                throw new SemanticError($"Error: No se puede acceder a la propiedad '{propertyAccess.ID().GetText()}' en algo que no es una instancia (tipo: {callee?.GetType().Name})",
+                    propertyAccess.Start
+                );
             }
         }
     }
+
     return callee;
 }
 
@@ -1044,12 +1092,24 @@ public ValueWrapper VisitCall(Invocable invocable, LanguageParser.ArgsContext co
 }
 
 //funcdlc
-public override ValueWrapper VisitFuncdlc(LanguageParser.FuncdlcContext context) {
-    string functionName = context.ID().GetText();
+private static string ObtenerNombreFuncion(LanguageParser.FuncdlcContext context) {
+    return context.ID().Length switch {
+        1 => context.ID(0).GetText(),     // func normal
+        3 => context.ID(2).GetText(),     // método con receptor
+        _ => throw new SemanticError("Error: No se puede determinar el nombre de la función.", context.Start)
+    };
+}
 
-    if (currentEnvironment.variables.ContainsKey(functionName)) {
-        throw new SemanticError("Error: La función '" + functionName + "' ya ha sido declarada.", context.Start);
-    }
+private static string? ObtenerTipoReceptor(LanguageParser.FuncdlcContext context) {
+    return context.ID().Length == 3 ? context.ID(1).GetText() : null; // Receptor si es método
+}
+
+private Dictionary<string, List<(string name, ForeignFunction func)>> visitorMethods = new();
+
+
+public override ValueWrapper VisitFuncdlc(LanguageParser.FuncdlcContext context) {
+    string nombreFuncion = ObtenerNombreFuncion(context);
+    string? tipoReceptor = ObtenerTipoReceptor(context); 
 
     Type tipoRetorno = typeof(VoidValue);
     string tipoStr = "void";
@@ -1059,55 +1119,78 @@ public override ValueWrapper VisitFuncdlc(LanguageParser.FuncdlcContext context)
         tipoStr = context.tipo().GetText();
     }
 
-    var foreign = new ForeignFunction(currentEnvironment, context, tipoRetorno);
-    
+    var foreign = new ForeignFunction(currentEnvironment, context, tipoRetorno, this);
+
     if (context.Start == null) {
-        throw new SemanticError($"Error interno: No se pudo obtener `Start` en la declaración de la función '{functionName}'.", context.Start);
+        throw new SemanticError($"Error interno: No se pudo obtener 'Start' para la función '{nombreFuncion}'.", context.Start);
     }
 
-    currentEnvironment.DeclareVariable(functionName, new FunctionValue(foreign, functionName), typeof(FunctionValue), context.Start);
+    if (tipoReceptor == null) {
+        if (currentEnvironment.variables.ContainsKey(nombreFuncion)) {
+            throw new SemanticError("Error: La función '" + nombreFuncion + "' ya ha sido declarada.", context.Start);
+        }
 
-    int line = context.Start.Line;
-    int column = context.Start.Column;
+        currentEnvironment.DeclareVariable(nombreFuncion, new FunctionValue(foreign, nombreFuncion), typeof(FunctionValue), context.Start);
 
-    string scope = "Global";
-    CompilerVisitor.GlobalSymbolTable.AddSymbol(functionName, "Function", tipoStr, scope, line, column);
+        int line = context.Start.Line;
+        int column = context.Start.Column;
+        CompilerVisitor.GlobalSymbolTable.AddSymbol(nombreFuncion, "Function", tipoStr, "Global", line, column);
 
-    Console.WriteLine($" Función '{functionName}' registrada en línea {line}, columna {column}.");
+    } else {
+        if (!visitorMethods.ContainsKey(tipoReceptor)) {
+            visitorMethods[tipoReceptor] = new List<(string, ForeignFunction)>();
+        }
+        visitorMethods[tipoReceptor].Add((nombreFuncion, foreign));
+
+    }
 
     return defaultValue;
 }
 
-//visitclassdcl
-public override ValueWrapper VisitClassdcl(LanguageParser.ClassdclContext context) {
-    Dictionary<string, LanguageParser.DeclaracionVarContext> props = new Dictionary<string, LanguageParser.DeclaracionVarContext>();
-    Dictionary<string, ForeignFunction> methods = new Dictionary<string, ForeignFunction>();
+//Visitstructdcl
+public override ValueWrapper VisitStructdcl(LanguageParser.StructdclContext context) {
+    Dictionary<string, StructFieldInfo> props = new();
+    Dictionary<string, ForeignFunction> methods = new();
 
-    foreach (var prop in context.classBody()) {
-        if (prop.variables() != null) {
-            var varDecl = prop.variables();
+    string structName = context.ID().GetText();
 
-            if (varDecl is LanguageParser.DeclaracionVarContext declaracionVar) {
-                props.Add(declaracionVar.ID().GetText(), declaracionVar);
+    foreach (var prop in context.structBody()) {
+        if (prop.variables() is LanguageParser.DeclaracionVarContext declaracionVar) {
+            string id = declaracionVar.ID().GetText();
+            string tipo = declaracionVar.tipo().GetText();
+            props[id] = new StructFieldInfo(id, tipo);
+        } 
+        else if (prop.ID() != null && prop.tipo() != null) {
+            string id = prop.ID().GetText();
+            string tipo = prop.tipo().GetText();
+            props[id] = new StructFieldInfo(id, tipo);
+        } 
+        else if (prop.funcdlc() != null) {
+            // Visitar el método dentro del struct
+            Visit(prop.funcdlc());
+
+        
+            if (visitorMethods.ContainsKey(structName)) {
+                foreach (var (name, method) in visitorMethods[structName]) {
+                    methods[name] = method;
+                }
+
+                visitorMethods.Remove(structName); 
             }
-        } else if (prop.funcdlc() != null) {
-            var funcdcl = prop.funcdlc();
-
-            Type tipoRetorno = typeof(VoidValue); // Por defecto VoidValue
-            if (funcdcl.tipo() != null) { 
-                tipoRetorno = ObtenerTipo(funcdcl.tipo().GetText(), context.Start);
-            }
-
-            Console.WriteLine($" Agregando método: {funcdcl.ID().GetText()} con retorno {tipoRetorno.Name}");
-
-            var foreignFunction = new ForeignFunction(currentEnvironment, funcdcl, tipoRetorno);
-            methods.Add(funcdcl.ID().GetText(), foreignFunction);
         }
     }
 
-    LanguageClass languageClass = new LanguageClass(context.ID().GetText(), props, methods);
+    //  métodos definidos fuera del struct
+    if (visitorMethods.ContainsKey(structName)) {
+        foreach (var (name, method) in visitorMethods[structName]) {
+            methods[name] = method;
+        }
 
-    currentEnvironment.DeclareVariable(context.ID().GetText(), new ClassValue(languageClass), typeof(ClassValue));
+        visitorMethods.Remove(structName); // Limpiar
+    }
+
+    StructType structType = new StructType(structName, props, methods);
+    currentEnvironment.DeclareVariable(structName, new StructTypeValue(structType), typeof(StructTypeValue));
 
     return defaultValue;
 }
@@ -1115,9 +1198,9 @@ public override ValueWrapper VisitClassdcl(LanguageParser.ClassdclContext contex
 
 //visitnew
 public override ValueWrapper VisitNew(LanguageParser.NewContext context) {
-    ValueWrapper  classValue = currentEnvironment.GetVariable(context.ID().GetText(), context.Start);
+    ValueWrapper  structTypeValue = currentEnvironment.GetVariable(context.ID().GetText(), context.Start);
 
-    if (classValue is not ClassValue) {
+    if (structTypeValue is not StructTypeValue) {
         throw new SemanticError("Error: No se puede instanciar un valor que no es una clase.", context.Start);
     }
     List<ValueWrapper> argumentos = new List<ValueWrapper>();
@@ -1128,34 +1211,32 @@ public override ValueWrapper VisitNew(LanguageParser.NewContext context) {
         }
 
     }
-    var instance = ((ClassValue)classValue).LanguageClass.Invoke(argumentos, this);
+    var instance = ((StructTypeValue)structTypeValue).StructType.Invoke(argumentos, this);
     Console.WriteLine("Instancia de " + context.ID().GetText() + " creada.");
     return instance;
     
 }
 
-public override ValueWrapper VisitModuleFuncCall(LanguageParser.ModuleFuncCallContext context) {
-    string moduleName = context.GetChild(0).GetText(); 
+public override ValueWrapper VisitModuleFuncCall(LanguageParser.ModuleFuncCallContext context)
+{
+    var instance = Visit(context.expr());
 
-    string functionName = context.GetChild(2).GetText();  
+    if (instance is InstanceValue instVal)
+    {
+        string methodName = context.ID().GetText();
 
-    string fullFunctionName = $"{moduleName}.{functionName}"; 
+        var method = instVal.Instance.Get(methodName, context.ID().Symbol, this);
 
-
-    List<ValueWrapper> args = new List<ValueWrapper>();
-    if (context.args() != null) {
-        foreach (var arg in context.args().expr()) {
-            args.Add(Visit(arg));
+        if (method is FunctionValue func)
+        {
+            var args = context.args()?.expr().Select(Visit).ToList() ?? new List<ValueWrapper>();
+            return func.invocable.Invoke(args, this); 
         }
+
+        throw new SemanticError($"'{methodName}' no es una función en la instancia.", context.ID().Symbol);
     }
 
-    ValueWrapper funcion = currentEnvironment.GetVariable(fullFunctionName, context.Start);
-
-    if (funcion is not FunctionValue functionValue) {
-        throw new SemanticError($"Error: {fullFunctionName} no es una función válida.", context.Start);
-    }
-
-    return functionValue.invocable.Invoke(args, this);
+    throw new SemanticError("Llamada de método sobre un valor que no es instancia.", context.Start);
 }
 
 public void EjecutarMain(CompilerVisitor visitor, Antlr4.Runtime.ParserRuleContext context) {
@@ -1182,6 +1263,26 @@ public void EjecutarMain(CompilerVisitor visitor, Antlr4.Runtime.ParserRuleConte
 }
 
 
+public override ValueWrapper VisitInstanciaStruct(LanguageParser.InstanciaStructContext context)
+{
+    string tipoNombre = context.ID().GetText();
+    var structTypeValue = currentEnvironment.GetVariable(tipoNombre, context.Start) as StructTypeValue;
+
+    if (structTypeValue == null)
+    {
+        throw new SemanticError($"Struct '{tipoNombre}' no está definido.", context.Start);
+    }
+
+    var instance = new Instance(structTypeValue.StructType);
+    foreach (var campo in context.camposStruct().campoStruct())
+    {
+        string campoNombre = campo.ID().GetText();
+        ValueWrapper valor = Visit(campo.expr());
+        instance.Set(campoNombre, valor);
+    }
+
+    return new InstanceValue(instance);
+}
 
 }
 

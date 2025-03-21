@@ -19,7 +19,6 @@
 // Ambiguous reference in cref attribute
 #pragma warning disable 419
 
-namespace analyzer {
 using Antlr4.Runtime.Misc;
 using Antlr4.Runtime.Tree;
 using IToken = Antlr4.Runtime.IToken;
@@ -86,17 +85,17 @@ public interface ILanguageVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitFila([NotNull] LanguageParser.FilaContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="LanguageParser.classdcl"/>.
+	/// Visit a parse tree produced by <see cref="LanguageParser.structdcl"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitClassdcl([NotNull] LanguageParser.ClassdclContext context);
+	Result VisitStructdcl([NotNull] LanguageParser.StructdclContext context);
 	/// <summary>
-	/// Visit a parse tree produced by <see cref="LanguageParser.classBody"/>.
+	/// Visit a parse tree produced by <see cref="LanguageParser.structBody"/>.
 	/// </summary>
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
-	Result VisitClassBody([NotNull] LanguageParser.ClassBodyContext context);
+	Result VisitStructBody([NotNull] LanguageParser.StructBodyContext context);
 	/// <summary>
 	/// Visit a parse tree produced by <see cref="LanguageParser.funcdlc"/>.
 	/// </summary>
@@ -268,6 +267,13 @@ public interface ILanguageVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitBoleanTrueExpresion([NotNull] LanguageParser.BoleanTrueExpresionContext context);
 	/// <summary>
+	/// Visit a parse tree produced by the <c>InstanciaStruct</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitInstanciaStruct([NotNull] LanguageParser.InstanciaStructContext context);
+	/// <summary>
 	/// Visit a parse tree produced by the <c>MulDiv</c>
 	/// labeled alternative in <see cref="LanguageParser.expr"/>.
 	/// </summary>
@@ -316,6 +322,13 @@ public interface ILanguageVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitCaracterExpresion([NotNull] LanguageParser.CaracterExpresionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by the <c>nilExpresion</c>
+	/// labeled alternative in <see cref="LanguageParser.expr"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitNilExpresion([NotNull] LanguageParser.NilExpresionContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>ModuleFuncCall</c>
 	/// labeled alternative in <see cref="LanguageParser.expr"/>.
@@ -372,6 +385,18 @@ public interface ILanguageVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <param name="context">The parse tree.</param>
 	/// <return>The visitor result.</return>
 	Result VisitBoleanFalseExpresion([NotNull] LanguageParser.BoleanFalseExpresionContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="LanguageParser.camposStruct"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCamposStruct([NotNull] LanguageParser.CamposStructContext context);
+	/// <summary>
+	/// Visit a parse tree produced by <see cref="LanguageParser.campoStruct"/>.
+	/// </summary>
+	/// <param name="context">The parse tree.</param>
+	/// <return>The visitor result.</return>
+	Result VisitCampoStruct([NotNull] LanguageParser.CampoStructContext context);
 	/// <summary>
 	/// Visit a parse tree produced by the <c>FuncCall</c>
 	/// labeled alternative in <see cref="LanguageParser.call"/>.
@@ -452,4 +477,3 @@ public interface ILanguageVisitor<Result> : IParseTreeVisitor<Result> {
 	/// <return>The visitor result.</return>
 	Result VisitTipo([NotNull] LanguageParser.TipoContext context);
 }
-} // namespace analyzer

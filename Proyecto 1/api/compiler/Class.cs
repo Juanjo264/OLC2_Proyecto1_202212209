@@ -1,75 +1,64 @@
-using System.Runtime.CompilerServices;
-using analyzer;
-
-public class LanguageClass : Invocable
-{
+public class StructType : Invocable {
     public string Name { get; set; }
-    public Dictionary<string, LanguageParser.DeclaracionVarContext> Props { get; set; }
+    public Dictionary<string, StructFieldInfo> Props { get; set; }  // ← CAMBIO AQUÍ
     public Dictionary<string, ForeignFunction> Methods { get; set; }
-    public string MainProperty { get; private set; } = ""; // Nueva variable para propiedad principal
+    public string MainProperty { get; private set; } = "";
 
-    public LanguageClass(string name, 
-        Dictionary<string, LanguageParser.DeclaracionVarContext> props,
-        Dictionary<string, ForeignFunction> methods)
-    {
+    public StructType(string name,
+        Dictionary<string, StructFieldInfo> props,               // ← CAMBIO AQUÍ
+        Dictionary<string, ForeignFunction> methods) {
+        
         Name = name;
         Props = props;
         Methods = methods;
 
-            foreach (var prop in Props)
-            {
-                if ((prop.Value.tipo().GetText() == "int" || prop.Value.tipo().GetText() == "float") && Props.ContainsKey(prop.Key))
-                {
-                    MainProperty = prop.Key;
-                    break;
-                }
+        // Buscar propiedad principal
+        foreach (var prop in Props) {
+            var tipo = prop.Value.TypeName;
+            if (tipo == "int" || tipo == "float64") {
+                MainProperty = prop.Key;
+                break;
             }
-    }
-
-    public ForeignFunction? GetMethod(string name)
-    {
-        if (Methods.ContainsKey(name))
-        {
-            return Methods[name];
         }
-        return null;
     }
 
-    public int Arity()
-    {
+    public ForeignFunction? GetMethod(string name) {
+        return Methods.ContainsKey(name) ? Methods[name] : null;
+    }
+
+    public int Arity() {
         var constructor = GetMethod("constructor");
-        if (constructor != null)
-        {
-            return constructor.Arity();
-        }
-        return 0;
+        return constructor?.Arity() ?? 0;
     }
 
-    public ValueWrapper Invoke(List<ValueWrapper> args, CompilerVisitor visitor)
-    {
-        var newInstance = new Instance(this, MainProperty); // Pasamos la propiedad principal
-        
-        foreach (var prop in Props)
-        {
+    public ValueWrapper Invoke(List<ValueWrapper> args, CompilerVisitor visitor) {
+        var instance = new Instance(this, MainProperty);
+
+        foreach (var prop in Props) {
             var name = prop.Key;
-            var value = prop.Value;
-            if (value.expr() != null)
-            {
-                var varValue = visitor.Visit(value.expr());
-                newInstance.Set(name, varValue);
-            }
-            else
-            {
-                newInstance.Set(name, visitor.defaultValue);
-            }
+            var fieldInfo = prop.Value;
+
+            Type tipo = visitor.ObtenerTipo(fieldInfo.TypeName, null);  // Usa tu método de resolución de tipo
+            ValueWrapper valor = visitor.currentEnvironment.GetDefaultValue(tipo);
+            instance.Set(name, valor);
         }
 
         var constructor = GetMethod("constructor");
-        Console.WriteLine(constructor);
-        if (constructor != null)
-        {
-            constructor.Bind(newInstance).Invoke(args, visitor);
+        if (constructor != null) {
+            constructor.Bind(instance, visitor).Invoke(args, visitor);
         }
-        return new InstanceValue(newInstance);
+
+        return new InstanceValue(instance);
     }
 }
+
+public class StructFieldInfo {
+    public string Name { get; }
+    public string TypeName { get; }
+
+    public StructFieldInfo(string name, string typeName) {
+        Name = name;
+        TypeName = typeName;
+    }
+}
+
