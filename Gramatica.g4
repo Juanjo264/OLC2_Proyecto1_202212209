@@ -106,7 +106,6 @@ expr:
 camposStruct: campoStruct (',' campoStruct)* (',')? ;
 campoStruct: ID ':' expr ;
 
-//como a.b.c().f=
 call: 
     '(' args? ')' 	#FuncCall 
     | '.' ID #Get;

@@ -1,11 +1,11 @@
 public class StructType : Invocable {
     public string Name { get; set; }
-    public Dictionary<string, StructFieldInfo> Props { get; set; }  // ← CAMBIO AQUÍ
+    public Dictionary<string, StructFieldInfo> Props { get; set; } 
     public Dictionary<string, ForeignFunction> Methods { get; set; }
     public string MainProperty { get; private set; } = "";
 
     public StructType(string name,
-        Dictionary<string, StructFieldInfo> props,               // ← CAMBIO AQUÍ
+        Dictionary<string, StructFieldInfo> props,          
         Dictionary<string, ForeignFunction> methods) {
         
         Name = name;
@@ -38,7 +38,7 @@ public class StructType : Invocable {
             var name = prop.Key;
             var fieldInfo = prop.Value;
 
-            Type tipo = visitor.ObtenerTipo(fieldInfo.TypeName, null);  // Usa tu método de resolución de tipo
+            Type tipo = visitor.ObtenerTipo(fieldInfo.TypeName, null);  
             ValueWrapper valor = visitor.currentEnvironment.GetDefaultValue(tipo);
             instance.Set(name, valor);
         }

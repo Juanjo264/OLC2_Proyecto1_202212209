@@ -70,7 +70,7 @@ visitor.currentEnvironment = beforeCallEnv;
 string nombreFuncion;
 
 if (context.ID().Length == 2) {
-    // Método con receptor (func (p Persona) Saludar())
+    // Método con receptor 
     nombreFuncion = context.ID(1).GetText();
 } else {
     // Función normal
@@ -102,7 +102,7 @@ public static ValueWrapper ObtenerValorPorDefecto(Type tipo) {
         Type t when t == typeof(StringValue) => new StringValue(""),
         Type t when t == typeof(RuneValue) => new RuneValue('\0'),
         Type t when t == typeof(SliceValue) => new SliceValue(new List<ValueWrapper>()),
-        Type t when t == typeof(InstanceValue) => new InstanceValue(null), // 🔥 Agregamos un caso para clases
+        Type t when t == typeof(InstanceValue) => new InstanceValue(null), 
         _ => throw new SemanticError($"Error: No se puede determinar un valor por defecto para el tipo {tipo.Name}.", null)
     };
 }
