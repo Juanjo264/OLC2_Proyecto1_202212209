@@ -1,4 +1,4 @@
-grammar Language;
+grammar Gramatica;
 
 options { caseInsensitive = false; }
 
